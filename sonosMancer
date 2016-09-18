@@ -1,0 +1,79 @@
+#!/usr/bin/env python
+import soco
+from sys import argv
+from time import sleep
+
+
+#  Globals
+VOLUME_CAP = 12
+
+
+class speakerCommand:
+
+    def __init__(self, cap=None):
+        self.speaker_array = soco.discover()
+        self.cap = cap
+        self.__version__ = '1.0'
+
+
+    def volumeFade(self):
+        print('Fading...')
+        for device in self.speaker_array:
+            print(device.player_name)
+            while device.volume > self.cap:
+                device.volume -= 1
+                print(device.volume)
+                sleep(1)  # Sleep for a half a second between each decrement
+        print('Done')
+
+
+    def queueClear(self):
+        for device in self.speaker_array:
+            if len(device.get_queue()) > 0:
+                device.clear_queue()
+        print('\nyou cleared the queue\n')
+
+
+    def checkVolume(self):
+        for device in self.speaker_array:
+            print(device.volume, device.player_name)
+
+
+    def volumeCut(self):
+        for device in self.speaker_array:
+            device.volume = 0
+            print(device.volume, device.player_name)
+        print('Done')
+
+
+command_map = {
+    'fade': speakerCommand.volumeFade,
+    'clear': speakerCommand.queueClear,
+    'status': speakerCommand.checkVolume,
+    'cut': speakerCommand.volumeCut
+}
+
+
+if __name__ == '__main__':
+    a = speakerCommand(cap=VOLUME_CAP)
+    if len(argv) < 2 or len(argv) > 2:
+        print('\nWhat do you want to do?\n')
+        print('Your options are:')
+        for i in command_map.keys():
+            print(i)
+    else:
+        try:
+            command_instance = argv[1].strip()
+            ''' Declare the class.method() and then pass in
+                you instance that you initialized.
+
+                speakerCommand.volumeFade(a)
+
+                where 'a' is the instance that was initialized.
+            '''
+            command_map[command_instance](a)
+
+        except KeyError:
+            print('\nHere are your options:\n')
+            for i in command_map.keys():
+                print(i)
